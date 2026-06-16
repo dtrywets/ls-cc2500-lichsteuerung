@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": ".",
+			"name": "LS CC2500 Lichtsteuerung"
+		}
+	],
+	"settings": {
+		"files.exclude": {
+			"**/.pio": true
+		}
+	}
+}

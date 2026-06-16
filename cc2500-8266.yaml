@@ -1,0 +1,131 @@
+esphome:
+  name: cc2500-8266
+  friendly_name: CC2500 Küchenlicht Debug
+  comment: "L&S Emotion / CC2500 Sniffer ESP8266 (PA_EN D0, RX_EN D3)"
+  includes:
+    - ext/cc2500_ls_debug.h
+  libraries:
+    - SPI
+  on_boot:
+    priority: 600
+    then:
+      - delay: 1s
+      - lambda: |-
+          using namespace esphome::cc2500_ls;
+          if (g_cc2500_dbg != nullptr) return;
+          auto *dbg = &cc2500_instance();
+          dbg->set_pins(15, 16, 0);
+          dbg->set_text_sensors(id(chip_info), id(dbg_status), id(last_rx));
+          dbg->set_sensors(id(rssi), id(rf_channel), id(rx_count));
+          dbg->set_chip_ok(id(chip_ok));
+          g_cc2500_dbg = dbg;
+          dbg->setup();
+
+esp8266:
+  board: d1_mini
+
+logger:
+  level: DEBUG
+  baud_rate: 0
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  min_auth_mode: WPA2
+  ap:
+    ssid: "CC2500 Fallback"
+    password: !secret ap_password
+
+api:
+  encryption:
+    key: bip/2WNdPXJ1jCvXOPDWvzgF0ou4IZl/Bcwi9a56j6Q=
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+binary_sensor:
+  - platform: template
+    name: "CC2500 Chip OK"
+    id: chip_ok
+    device_class: connectivity
+    entity_category: diagnostic
+
+text_sensor:
+  - platform: template
+    name: "CC2500 Chip Info"
+    id: chip_info
+    icon: mdi:chip
+    entity_category: diagnostic
+  - platform: template
+    name: "CC2500 Status"
+    id: dbg_status
+    icon: mdi:information-outline
+    entity_category: diagnostic
+  - platform: template
+    name: "CC2500 Letztes Paket"
+    id: last_rx
+    icon: mdi:radio-tower
+
+sensor:
+  - platform: wifi_signal
+    name: "CC2500 WiFi Signal"
+    update_interval: 60s
+  - platform: uptime
+    name: "CC2500 Uptime"
+    update_interval: 60s
+  - platform: template
+    name: "CC2500 RSSI"
+    id: rssi
+    unit_of_measurement: "dBm"
+    accuracy_decimals: 0
+    entity_category: diagnostic
+  - platform: template
+    name: "CC2500 Kanal"
+    id: rf_channel
+    entity_category: diagnostic
+  - platform: template
+    name: "CC2500 RX Zähler"
+    id: rx_count
+    entity_category: diagnostic
+
+button:
+  - platform: template
+    name: "CC2500 Neu initialisieren"
+    icon: mdi:restart
+    on_press:
+      - lambda: |-
+          if (esphome::cc2500_ls::g_cc2500_dbg != nullptr)
+            esphome::cc2500_ls::g_cc2500_dbg->reinit();
+  - platform: template
+    name: "CC2500 SPI Scan"
+    icon: mdi:swap-horizontal
+    on_press:
+      - lambda: |-
+          if (esphome::cc2500_ls::g_cc2500_dbg != nullptr)
+            esphome::cc2500_ls::g_cc2500_dbg->start_full_scan();
+
+interval:
+  - interval: 250ms
+    then:
+      - lambda: |-
+          if (esphome::cc2500_ls::g_cc2500_dbg != nullptr)
+            esphome::cc2500_ls::g_cc2500_dbg->loop();
+  - interval: 5s
+    then:
+      - lambda: |-
+          auto *d = esphome::cc2500_ls::g_cc2500_dbg;
+          if (d == nullptr) return;
+          id(chip_ok).publish_state(d->is_chip_ok());
+          char info[64];
+          if (d->is_scanning()) {
+            snprintf(info, sizeof(info), "Scan laeuft... PART=0x%02X", d->get_partnum());
+          } else {
+            snprintf(info, sizeof(info), "PARTNUM=0x%02X VER=0x%02X", d->get_partnum(), d->get_version());
+          }
+          id(chip_info).publish_state(info);
+          const char *ps = d->get_probe_summary();
+          if (ps != nullptr && ps[0] != '\0')
+            id(dbg_status).publish_state(ps);
+          id(rf_channel).publish_state(d->get_channel());
+          id(rx_count).publish_state(d->get_rx_count());

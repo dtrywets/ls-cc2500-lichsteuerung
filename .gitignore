@@ -1,0 +1,12 @@
+# Lokale Notizen, Chat-Exporte, Recherche
+docs/
+
+# ESPHome (Secrets, Build-Cache)
+secrets.yaml
+.esphome/
+.pio/
+
+# Editor / OS
+.vscode/
+*.swp
+.DS_Store
