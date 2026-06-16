@@ -1,0 +1,38 @@
+---
+description: Bei jeder Änderung Versionsdatum in Git und ESPHome/HA aktualisieren
+alwaysApply: true
+---
+
+# Versionsdatum pflegen
+
+Bei **jeder** Code- oder Konfigurationsänderung am Projekt das Versionsdatum auf **heute** setzen (`YYYY-MM-DD`, Zeitzone des Entwicklers).
+
+## Pflicht-Schritte vor Abschluss einer Änderung
+
+1. **`cc2500-8266.yaml`** — `substitutions.fw_version` auf das aktuelle Datum setzen.
+2. **ESPHome** — `esphome.project.version` nutzt `${fw_version}` (nicht separat pflegen).
+3. **Home Assistant** — `text_sensor` „CC2500 Firmware-Version“ zeigt `${fw_version}`; nach OTA-Flash in HA prüfbar.
+4. **Git** — Geänderte Dateien committen; die aktualisierte `fw_version` muss im Commit enthalten sein.
+
+## Format
+
+- Nur Datum: `2026-06-16` (kein Semver, keine Uhrzeit).
+- Mehrere Änderungen am selben Tag: Datum **nicht** erneut erhöhen, außer der Kalendertag hat gewechselt.
+
+## Beispiel
+
+```yaml
+substitutions:
+  fw_version: "2026-06-16"
+
+esphome:
+  project:
+    name: dtrywets.ls-cc2500-lichtsteuerung
+    version: ${fw_version}
+```
+
+## Nicht vergessen
+
+- Auch Änderungen an `ext/cc2500_ls_debug.h` oder `scripts/` lösen Versions-Bump aus.
+- Reine Doku in `docs/` (gitignored) ist ausgenommen.
+- Commit-Message erwähnt das neue Datum, wenn Firmware betroffen ist (z. B. „Firmware 2026-06-16: SPI-Scan verbessert“).

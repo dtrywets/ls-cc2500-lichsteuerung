@@ -1,7 +1,13 @@
+substitutions:
+  fw_version: "2026-06-16"
+
 esphome:
   name: cc2500-8266
   friendly_name: CC2500 Küchenlicht Debug
   comment: "L&S Emotion / CC2500 Sniffer ESP8266 (PA_EN D0, RX_EN D3)"
+  project:
+    name: dtrywets.ls-cc2500-lichtsteuerung
+    version: ${fw_version}
   includes:
     - ext/cc2500_ls_debug.h
   libraries:
@@ -10,6 +16,8 @@ esphome:
     priority: 600
     then:
       - delay: 1s
+      - lambda: |-
+          id(fw_version_ts).publish_state("${fw_version}");
       - lambda: |-
           using namespace esphome::cc2500_ls;
           if (g_cc2500_dbg != nullptr) return;
@@ -52,6 +60,11 @@ binary_sensor:
     entity_category: diagnostic
 
 text_sensor:
+  - platform: template
+    name: "CC2500 Firmware-Version"
+    id: fw_version_ts
+    icon: mdi:tag-outline
+    entity_category: diagnostic
   - platform: template
     name: "CC2500 Chip Info"
     id: chip_info

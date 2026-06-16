@@ -1,0 +1,38 @@
+---
+description: Nach Änderungen mit deutscher Message committen und zu GitHub pushen
+alwaysApply: true
+---
+
+# Commit und Sync
+
+Nach **abgeschlossenen** Änderungen am Projekt immer committen und synchronisieren.
+
+## Pflicht am Ende jeder Aufgabe
+
+1. `git status` prüfen — alle relevanten Änderungen stagen.
+2. **Deutsche Commit-Message** (Betreffzeile, ggf. kurzer Body); niemals leer oder nur auf Englisch.
+3. `git push` zu `origin` (`github-dtrywets:dtrywets/ls-cc2500-lichsteuerung.git`).
+
+## Commit-Message
+
+- Beschreibt das **Warum** bzw. den Nutzen, nicht nur Dateinamen.
+- Stil: „Fügt … hinzu“, „Behebt …“, „Aktualisiert …“.
+- Bei Firmware-Änderungen das Versionsdatum nennen (siehe Regel `versionsdatum`).
+
+## Beispiele
+
+```
+Firmware 2026-06-16: Versionsdatum und HA-Sensor ergänzt
+
+Projektregeln für Versionsdatum und Commit-Sync hinzugefügt.
+```
+
+```
+Behebt SPI-Scan bei vertauschtem MISO/MOSI
+```
+
+## Ausnahmen
+
+- Kein Commit bei rein explorativen Schritten ohne Dateiänderung.
+- Keine Secrets (`secrets.yaml`) oder gitignored Pfade (`docs/`) committen.
+- Nicht pushen, wenn der Nutzer ausdrücklich nur lokal arbeiten will.
